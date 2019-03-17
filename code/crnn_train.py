@@ -185,7 +185,7 @@ def train():
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
 
-    with tf.Session(graph=graph， config=config) as sess:
+    with tf.Session(graph=graph, config=config) as sess:
         sess.run(tf.global_variables_initializer())
         # saver.restore(sess, '../model_tr/model.cpkt-3450')
         step = 0
