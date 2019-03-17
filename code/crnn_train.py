@@ -176,16 +176,18 @@ def train():
         print(upper_data)
 
         loss_ga = loss_GAN(upper_data, y)
-        optimizer_ga = tf.train.AdamOptimizer(0.0001)
+        optimizer_ga = tf.train.AdamOptimizer(0.001)
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies([tf.group(*update_ops)]):
             train_ga = optimizer_ga.minimize(loss_ga)
         saver = tf.train.Saver()
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
 
-    with tf.Session(graph=graph) as sess:
+    with tf.Session(graph=graph， config=config) as sess:
         sess.run(tf.global_variables_initializer())
-        saver.restore(sess, '../model_tr/model.cpkt-3450')
+        # saver.restore(sess, '../model_tr/model.cpkt-3450')
         step = 0
         acc_min = 50000.0
         while step * 18 < max_samples:
