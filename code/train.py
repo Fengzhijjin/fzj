@@ -24,8 +24,8 @@ def conv2d_bn(input_data, kernel_num, filter_size=[2, 2], stride=1,
         padding=padding,
         activation_fn=activation_fn,
         scope=scope)
-    res = slim.dropout(res, 0.7, is_training=is_training, scope=None)
-    res = slim.batch_norm(res, decay=0.9, is_training=is_training,
+    res = slim.dropout(res, 0.8, is_training=is_training, scope=None)
+    res = slim.batch_norm(res, decay=0.01, is_training=is_training,
                           scope=scope)
     return res
 
@@ -35,6 +35,7 @@ def conv2d_tr(input_data, filter_shape, output_shape, strides,
     filter_in = tf.Variable(tf.random_normal(filter_shape))
     res = tf.nn.conv2d_transpose(input_data, filter_in, output_shape, strides,
                                  padding)
+    res = slim.dropout(res, 0.8, is_training=is_training, scope=None)
     res = slim.batch_norm(res, decay=0.01, is_training=is_training,
                           scope=scope)
     return res
@@ -104,7 +105,7 @@ def Upper_sample(x, is_training=True):
 
     net = conv2d_tr(net, [1, 1, 3, 64], [18, 144, 180, 3], [1, 1, 1, 1],
                     is_training=is_training, scope='Upper_sample/net1')
-    net = tf.nn.relu(net)
+    net = tf.nn.tanh(net)
     # shape = (none, 144, 180, 3)
 
     return net
@@ -159,10 +160,8 @@ def train():
         with tf.control_dependencies([tf.group(*update_ops)]):
             train_ga = optimizer_ga.minimize(loss_ga)
         saver = tf.train.Saver()
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
 
-    with tf.Session(graph=graph, config=config) as sess:
+    with tf.Session(graph=graph) as sess:
         sess.run(tf.global_variables_initializer())
         step = 0
         if checkpoint_path:
@@ -174,7 +173,6 @@ def train():
                 batch_x, batch_y = rd.read_data_test()
                 loss_g, out = sess.run([loss_ga, upper_data],
                                        feed_dict={x: batch_x, y: batch_y, is_training: False})
-                del(batch_x)
                 print(step//display_step, loss_g)
 
                 if loss_g < acc_min:
@@ -198,9 +196,7 @@ def train():
             else:
                 batch_x, batch_y = rd.read_data_train()
                 train_, loss_ = sess.run([train_ga, loss_ga],
-                                         feed_dict={x: batch_x, y: batch_y, is_training:True})
-                del(batch_x)
-                del(batch_y)
+                                         feed_dict={x: batch_x, y: batch_y, is_training: True})
                 print("step:", step, "    loss:", loss_)
             step += 1
 

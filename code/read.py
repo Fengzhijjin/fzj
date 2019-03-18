@@ -33,7 +33,11 @@ class myThread (threading.Thread):
 
 
 def read_data_train():
-    num = random.randint(0, 150)
+    nums = [20, 40, 60, 80, 100, 120, 140]
+    while True:
+        num = random.randint(0, 150)
+        if num not in nums:
+            break
     # print('./data/images/' + str(num))
     for i in range(36):
         img = Image.open('../data/image/' + str(num) + '/' + str(i) + '.jpg')
