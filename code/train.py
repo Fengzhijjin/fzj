@@ -55,20 +55,31 @@ def Lower_sample(x, is_training=True):
                         is_training=is_training, scope=scope)
         # shape = (none, 72, 90, 128)
     with tf.variable_scope('Lower_sample/net4') as scope:
+        net = conv2d_bn(net, 128, filter_size=[1, 1], stride=[1, 1],
+                        is_training=is_training, scope=scope)
+        # shape = (none, 72, 90, 128)
+    with tf.variable_scope('Lower_sample/net5') as scope:
         net = conv2d_bn(net, 256, filter_size=[3, 3], stride=[2, 2],
                         is_training=is_training, scope=scope)
         # shape = (none, 36, 45, 256)
-    with tf.variable_scope('Lower_sample/net5') as scope:
+    with tf.variable_scope('Lower_sample/net6') as scope:
+        net = conv2d_bn(net, 256, filter_size=[3, 3], stride=[1, 1],
+                        is_training=is_training, scope=scope)
+        # shape = (none, 36, 45, 256)
+    with tf.variable_scope('Lower_sample/net7') as scope:
+        net = conv2d_bn(net, 256, filter_size=[1, 1], stride=[1, 1],
+                        is_training=is_training, scope=scope)
+        # shape = (none, 36, 45, 256)
+    with tf.variable_scope('Lower_sample/net8') as scope:
         net = conv2d_bn(net, 512, filter_size=[3, 3], stride=[2, 2],
                         is_training=is_training, scope=scope)
         # shape = (none, 18, 23, 512)
-    with tf.variable_scope('Lower_sample/net6') as scope:
-        net = conv2d_bn(net, 256, filter_size=[3, 3], stride=[1, 1],
+    with tf.variable_scope('Lower_sample/net9') as scope:
+        net = conv2d_bn(net, 256, filter_size=[1, 1], stride=[1, 1],
                         is_training=is_training, scope=scope)
         # shape = (none, 18, 23, 256)
 
     net = tf.transpose(net, [3, 0, 1, 2])
-    # shape = (256, none, 18, 23)
 
     return net
 
@@ -78,32 +89,47 @@ def Upper_sample(x, is_training=True):
     # x = tf.transpose(x, [1, 2, 3, 0])
     # shape = (none, 18, 23, 256)
 
-    net = conv2d_tr(x, [3, 3, 1024, 256], [18, 18, 23, 1024], [1, 1, 1, 1],
+    net = conv2d_tr(x, [1, 1, 512, 256], [18, 18, 23, 512], [1, 1, 1, 1],
+                    is_training=is_training, scope='Upper_sample/net9')
+    net = tf.nn.relu(net)
+    # shape = (none, 16, 23, 512)
+
+    net = conv2d_tr(net, [3, 3, 256, 512], [18, 36, 45, 256], [1, 2, 2, 1],
+                    is_training=is_training, scope='Upper_sample/net8')
+    net = tf.nn.relu(net)
+    # shape = (none, 36, 45, 256)
+
+    net = conv2d_tr(net, [1, 1, 256, 256], [18, 36, 45, 256], [1, 1, 1, 1],
+                    is_training=is_training, scope='Upper_sample/net7')
+    net = tf.nn.relu(net)
+    # shape = (none, 36, 45, 256)
+
+    net = conv2d_tr(net, [3, 3, 256, 256], [18, 36, 45, 256], [1, 1, 1, 1],
                     is_training=is_training, scope='Upper_sample/net6')
     net = tf.nn.relu(net)
-    # shape = (none, 18, 23, 1024)
+    # shape = (none, 36, 45, 128)
 
-    net = conv2d_tr(net, [3, 3, 512, 1024], [18, 36, 45, 512], [1, 2, 2, 1],
+    net = conv2d_tr(net, [3, 3, 128, 256], [18, 72, 90, 128], [1, 2, 2, 1],
                     is_training=is_training, scope='Upper_sample/net5')
     net = tf.nn.relu(net)
-    # shape = (none, 36, 45, 512)
+    # shape = (none, 72, 90, 128)
 
-    net = conv2d_tr(net, [3, 3, 256, 512], [18, 72, 90, 256], [1, 2, 2, 1],
+    net = conv2d_tr(net, [1, 1, 128, 128], [18, 72, 90, 128], [1, 1, 1, 1],
                     is_training=is_training, scope='Upper_sample/net4')
     net = tf.nn.relu(net)
-    # shape = (none, 72, 90, 256)
+    # shape = (none, 72, 90, 128)
 
-    net = conv2d_tr(net, [3, 3, 128, 256], [18, 144, 180, 128], [1, 2, 2, 1],
+    net = conv2d_tr(net, [3, 3, 64, 128], [18, 72, 90, 64], [1, 1, 1, 1],
                     is_training=is_training, scope='Upper_sample/net3')
     net = tf.nn.relu(net)
-    # shape = (none, 144, 180, 128)
+    # shape = (none, 72, 90, 64)
 
-    net = conv2d_tr(net, [3, 3, 64, 128], [18, 144, 180, 64], [1, 1, 1, 1],
+    net = conv2d_tr(net, [3, 3, 16, 64], [18, 144, 180, 16], [1, 2, 2, 1],
                     is_training=is_training, scope='Upper_sample/net2')
     net = tf.nn.relu(net)
-    # shape = (none, 144, 180, 64)
+    # shape = (none, 144, 180, 16)
 
-    net = conv2d_tr(net, [1, 1, 3, 64], [18, 144, 180, 3], [1, 1, 1, 1],
+    net = conv2d_tr(net, [3, 3, 3, 16], [18, 144, 180, 3], [1, 1, 1, 1],
                     is_training=is_training, scope='Upper_sample/net1')
     net = tf.nn.tanh(net)
     # shape = (none, 144, 180, 3)
